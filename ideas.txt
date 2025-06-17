@@ -1,0 +1,5 @@
+'''
+So we could make it so that we prompt AI for the predictions, and the best bets, based off skimming the web, or we could maek an actual algorithm
+This can be done one of two ways, you can have AI guess, and then you can have the actual bixpix algorithm go through
+I think the best way to go about this is to actually do both, and then based on the response from each, create a final decision for each fight, and the confidence 
+'''
