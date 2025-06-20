@@ -3,17 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BixPix</title>
-    <link rel="stylesheet" href="index.css">
+    <title>Loading...</title>
     <link rel="icon" type="image/png" href="bixpixlogo.png">
+    <link rel="stylesheet" href="event.css">
+    <script src="dropdown.js"></script>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+        const event = decodeURIComponent(params.get('name'));
+        const url = decodeURIComponent(params.get('url'));
+        document.title = 'BixPix | ' + event;
+    </script>
+
 </head>
 <body>
-    <h1>Welcome to BixPix.</h1>
-    <p>Select a UFC Event:</p>
+    <div id="dropdownContainer"></div>
+    <h1 id="header">Best Pix for ...</h1>
+    <script>
+        let h = document.getElementById("header");
+        h.textContent = 'Best Pix for ' + event + '!';
+    </script>
+    <p>or select another card:</p>
     <!--DropDown Insert-->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            const dropdown = document.querySelector("select.dropdown__select");
+            const dropdown = document.querySelector('select.dropdown__select');
+            dropdown.value = id;
             if (dropdown) {
                 dropdown.addEventListener("change", function () {
                     // Selecting the current option we are on in the dropdown
@@ -29,6 +45,7 @@
                     }
                 });
             }
+            
         });
     </script>
 </body>

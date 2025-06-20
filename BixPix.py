@@ -30,7 +30,15 @@ html_output = html_template.replace("<!--DropDown Insert-->", dropdown_html)
 with open("index.html", "w") as file:
     file.write(html_output)
 
-# Now time to add JavaScript to make it so that once an event is selected, you are brought to that page with the best bets.
+# Do the same process for events page.
+with open("event_template.html", "r") as file:
+    event_template = file.read()
+event_output = event_template.replace("<!--DropDown Insert-->", dropdown_html)
+with open("event.html", "w") as file:
+    file.write(event_output)
+
+
+
 
 
 # Get all fights.
