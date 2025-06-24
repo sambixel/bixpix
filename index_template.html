@@ -14,6 +14,7 @@
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const dropdown = document.querySelector("select.dropdown__select");
+            dropdown.value = "";
             if (dropdown) {
                 dropdown.addEventListener("change", function () {
                     // Selecting the current option we are on in the dropdown
