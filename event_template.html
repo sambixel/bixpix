@@ -6,13 +6,12 @@
     <title>Loading...</title>
     <link rel="icon" type="image/png" href="bixpixlogo.png">
     <link rel="stylesheet" href="event.css">
-    <script src="dropdown.js"></script>
 
     <script>
         const params = new URLSearchParams(window.location.search);
         const id = params.get('id');
         const event = decodeURIComponent(params.get('name'));
-        const url = decodeURIComponent(params.get('url'));
+        const fightCardURL = decodeURIComponent(params.get('url'));
         document.title = 'BixPix | ' + event;
     </script>
 
@@ -20,19 +19,42 @@
 <body>
     <div id="dropdownContainer"></div>
     <h1 id="header">Best Pix for ...</h1>
-    <script>
-        let h = document.getElementById("header");
-        h.textContent = 'Best Pix for ' + event + '!';
-    </script>
     <p>or select another card:</p>
     <!--DropDown Insert-->
+
+    <!--Make call to app.py for scraping and event predictions-->
+      <button onclick="callPython()">Say Hello</button>
+  <div id="output"></div>
+
+  <script>
+    function callPython() {
+        fetch('http://127.0.0.1:5000/api/hello', {  // NOT 5500
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name: 'Sam' })
+        })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('output').textContent = data.message;
+      })
+      .catch(err => {
+        console.error('Error:', err);
+      });
+    }
+  </script>
+
+    <!--Changing to another page-->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const dropdown = document.querySelector('select.dropdown__select');
-            dropdown.value = id;
             if (dropdown) {
+                let h = document.getElementById("header");
+                h.textContent = 'Best Pix for ' + event + '!';
+                dropdown.value = id;
                 dropdown.addEventListener("change", function () {
-                    // Selecting the current option we are on in the dropdown
+                    // Selecting the current option we are on Din the dropdown
                     const selectedOption = dropdown.options[dropdown.selectedIndex];
                     // Getting the espn url for that option
                     const eventURL = selectedOption.getAttribute("data-url");
