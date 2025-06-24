@@ -36,19 +36,3 @@ with open("event_template.html", "r") as file:
 event_output = event_template.replace("<!--DropDown Insert-->", dropdown_html)
 with open("event.html", "w") as file:
     file.write(event_output)
-
-
-
-
-
-# Get all fights.
-# fightCard = soup.select("div.mb6")
-# for fight in fightCard:
-#     names = fight.select("span.truncate.tc.db").text.strip()
-
-#     # If the bout is not complete, continue.
-#     if(len(names) < 2):
-#         continue
-    
-#     print(names[0] + " vs " + names[1])
-    
