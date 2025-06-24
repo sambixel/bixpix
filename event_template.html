@@ -23,25 +23,27 @@
     <!--DropDown Insert-->
 
     <!--Make call to app.py for scraping and event predictions-->
-      <button onclick="callPython()">Say Hello</button>
+      <button onclick="getFighters()">Get Fighters</button>
   <div id="output"></div>
 
   <script>
-    function callPython() {
-        fetch('http://127.0.0.1:5000/api/hello', {  // NOT 5500
+    function getFighters() {
+        fetch('http://127.0.0.1:5000/api/getFighter', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ name: 'Sam' })
+        body: JSON.stringify({ cardURL: fightCardURL})
         })
       .then(response => response.json())
       .then(data => {
-        document.getElementById('output').textContent = data.message;
+        document.getElementById('output').textContent = data.links;
       })
       .catch(err => {
         console.error('Error:', err);
       });
+
+
     }
   </script>
 
@@ -50,17 +52,16 @@
         document.addEventListener("DOMContentLoaded", function () {
             const dropdown = document.querySelector('select.dropdown__select');
             if (dropdown) {
-                let h = document.getElementById("header");
-                h.textContent = 'Best Pix for ' + event + '!';
+                let header = document.getElementById("header");
+                header.textContent = 'Best Pix for ' + event + '!';
                 dropdown.value = id;
                 dropdown.addEventListener("change", function () {
-                    // Selecting the current option we are on Din the dropdown
+                    // Selecting the current option we are on in the dropdown
                     const selectedOption = dropdown.options[dropdown.selectedIndex];
                     // Getting the espn url for that option
                     const eventURL = selectedOption.getAttribute("data-url");
                     const eventValue = selectedOption.value;
                     const eventName = selectedOption.text
-                    console.log("eventURL: " + eventURL + ", eventValue: " + eventValue);
                     if (eventURL) {
                         // Redirect to the selected fight card's page
                         window.location.href = `event.html?id=${eventValue}&url=${encodeURIComponent(eventURL)}&name=${encodeURIComponent(eventName)}`;
