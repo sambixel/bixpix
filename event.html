@@ -34,7 +34,7 @@
 </select>
 
     <!--Make call to app.py for scraping and event predictions-->
-      <button onclick="getFighters()">Get Fighters</button>
+      <button onclick="getFighters()">Test</button>
   <div id="output"></div>
 
   <script>
@@ -48,10 +48,10 @@
         })
       .then(response => response.json())
       .then(data => {
-        if (!data.links || data.links.length == 0) {
-            document.getElementById('output').textContent = "No links.";
+        if (!data.status || data.status != "success") {
+            document.getElementById('output').textContent = "Failed.";
         } else {
-            document.getElementById('output').textContent = data.links;
+            document.getElementById('output').textContent = data.received;
         }
       })
       .catch(err => {
