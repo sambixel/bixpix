@@ -1,33 +1,29 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS
-import requests
-from bs4 import BeautifulSoup
 
-app = Flask(__name__)
-CORS(app)
+app = Flask(__name__)  # Make sure this is global
 
-@app.route('/api/getFighter', methods=['POST'])
-def getFighter():
-    try:
-        data = request.get_json(silent=True) or {}
-        url = 'https://www.espn.com' + data.get('cardURL')
-        # Spoof headers to avoid 403
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
-        }
-        res = requests.get(url, headers=headers)
+# ✅ Simple test route
+@app.route("/")
+def home():
+    return "🏠 BixPix Flask API is running!"
 
-        # Makes HTML easily accessible for searching
-        soup = BeautifulSoup(res.text, "html.parser")
+# ✅ List all routes (for debugging)
+@app.route("/routes")
+def list_routes():
+    import urllib
+    output = []
+    for rule in app.url_map.iter_rules():
+        methods = ','.join(rule.methods)
+        line = urllib.parse.unquote(f"{rule.endpoint:25s} {methods:20s} {rule}")
+        output.append(line)
+    return "<br>".join(sorted(output))
 
-        tags = soup.select('a.AnchorLink.db.h9.MMAFightCenter__ProfileLink')
-        links = [ tag['href'] for tag in tags ]
+# ✅ Test POST route
+@app.route("/api/getFighter", methods=["POST"])
+def get_fighters():
+    data = request.get_json()
+    return jsonify({"status": "success", "received": data})
 
-        return jsonify({'links': links})
-    
-    except Exception as e:
-        # still returns JSON (and CORS header) on errors
-        return jsonify(error=str(e)), 500
-
-if __name__ == '__main__':
+# ✅ Must be included to run via `python app.py`
+if __name__ == "__main__":
     app.run(debug=True)

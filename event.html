@@ -9,10 +9,10 @@
 
     <script>
         const params = new URLSearchParams(window.location.search);
-        const id = params.get('id');
         const event = decodeURIComponent(params.get('name'));
         const fightCardURL = decodeURIComponent(params.get('url'));
         document.title = 'BixPix | ' + event;
+        console.log(fightCardURL)
     </script>
 
 </head>
@@ -20,7 +20,18 @@
     <div id="dropdownContainer"></div>
     <h1 id="header">Best Pix for ...</h1>
     <p>or select another card:</p>
-    <select class="dropdown__select" name="1750798830109::c280000::141b3340:bc49:71f5:c48a:1ecdc8bd6b2d" style="text-overflow:ellipsis;overflow:hidden;width:100%"><option data-url="#" hidden="" value="Selected">Events</option><option data-url="/mma/fightcenter/_/id/600051441/league/ufc" value="600051441">UFC Fight Night: Dern vs Ribas 2</option><option data-url="/mma/fightcenter/_/id/600051442/league/ufc" value="600051442">UFC 311: Makhachev vs. Moicano</option><option data-url="/mma/fightcenter/_/id/600051443/league/ufc" value="600051443">UFC Fight Night: Adesanya vs. Imavov</option><option data-url="/mma/fightcenter/_/id/600050481/league/ufc" value="600050481">UFC 312: Du Plessis vs. Strickland 2</option><option data-url="/mma/fightcenter/_/id/600051444/league/ufc" value="600051444">UFC Fight Night: Cannonier vs. Rodrigues</option><option data-url="/mma/fightcenter/_/id/600051445/league/ufc" value="600051445">UFC Fight Night: Cejudo vs. Song</option><option data-url="/mma/fightcenter/_/id/600051446/league/ufc" value="600051446">UFC Fight Night: Kape vs. Almabayev</option><option data-url="/mma/fightcenter/_/id/600051447/league/ufc" value="600051447">UFC 313: Pereira vs. Ankalaev</option><option data-url="/mma/fightcenter/_/id/600051448/league/ufc" value="600051448">UFC Fight Night: Vettori vs. Dolidze 2</option><option data-url="/mma/fightcenter/_/id/600051194/league/ufc" value="600051194">UFC Fight Night: Edwards vs. Brady</option><option data-url="/mma/fightcenter/_/id/600051449/league/ufc" value="600051449">UFC Fight Night: Moreno vs. Erceg</option><option data-url="/mma/fightcenter/_/id/600053226/league/ufc" value="600053226">UFC Fight Night: Emmett vs. Murphy</option><option data-url="/mma/fightcenter/_/id/600053165/league/ufc" value="600053165">UFC 314: Volkanovski vs. Lopes</option><option data-url="/mma/fightcenter/_/id/600053312/league/ufc" value="600053312">UFC Fight Night: Machado Garry vs. Prates</option><option data-url="/mma/fightcenter/_/id/600053455/league/ufc" value="600053455">UFC Fight Night: Sandhagen vs. Figueiredo</option><option data-url="/mma/fightcenter/_/id/600053073/league/ufc" value="600053073">UFC 315: Muhammad vs. Della Maddalena</option><option data-url="/mma/fightcenter/_/id/600053676/league/ufc" value="600053676">UFC Fight Night: Burns vs. Morales</option><option data-url="/mma/fightcenter/_/id/600053606/league/ufc" value="600053606">UFC Fight Night: Blanchfield vs. Barber</option><option data-url="/mma/fightcenter/_/id/600053672/league/ufc" value="600053672">UFC 316: Dvalishvili vs. O'Malley 2</option><option data-url="/mma/fightcenter/_/id/600053732/league/ufc" value="600053732">UFC Fight Night: Usman vs. Buckley</option><option data-url="/mma/fightcenter/_/id/600053795/league/ufc" value="600053795">UFC Fight Night: Hill vs. Rountree Jr.</option><option data-url="/mma/fightcenter/_/id/600053168/league/ufc" selected="" value="600053168">UFC 317: Topuria vs. Oliveira</option><option data-url="/mma/fightcenter/_/id/600054061/league/ufc" value="600054061">UFC Fight Night: Lewis vs. Teixeira</option><option data-url="/mma/fightcenter/_/id/600053891/league/ufc" value="600053891">UFC 318: Holloway vs Poirier 3</option><option data-url="/mma/fightcenter/_/id/600053545/league/ufc" value="600053545">UFC Fight Night: Whittaker vs. de Ridder</option><option data-url="/mma/fightcenter/_/id/600054244/league/ufc" value="600054244">UFC Fight Night: Albazi vs. Taira</option><option data-url="/mma/fightcenter/_/id/600054396/league/ufc" value="600054396">UFC Fight Night: Dolidze vs. Hernandez</option><option data-url="/mma/fightcenter/_/id/600054045/league/ufc" value="600054045">UFC 319: Du Plessis vs. Chimaev</option><option data-url="/mma/fightcenter/_/id/600054141/league/ufc" value="600054141">UFC Fight Night: Shanghai</option><option data-url="/mma/fightcenter/_/id/600054419/league/ufc" value="600054419">UFC Fight Night: Imavov vs. Borralho</option><option data-url="/mma/fightcenter/_/id/600053664/league/ufc" value="600053664">UFC Fight Night: San Antonio</option><option data-url="/mma/fightcenter/_/id/600054473/league/ufc" value="600054473">UFC 320</option><option data-url="/mma/fightcenter/_/id/600054482/league/ufc" value="600054482">UFC Fight Night: Vancouver</option></select>
+    <select id="ufcEventSelect">
+<option disabled selected>Select an upcoming UFC event</option>
+  <option value="http://www.ufcstats.com/event-details/7b03d9df5910917d">UFC Fight Night: Lewis vs. Teixeira</option>
+  <option value="http://www.ufcstats.com/event-details/b8e2f10efb6eca85">UFC 318: Holloway vs. Poirier 3</option>
+  <option value="http://www.ufcstats.com/event-details/28d8638ea0a71908">UFC Fight Night: Whittaker vs. De Ridder</option>
+  <option value="http://www.ufcstats.com/event-details/f2c934689243fe4e">UFC Fight Night: Albazi vs. Taira</option>
+  <option value="http://www.ufcstats.com/event-details/6cd3dfc54f01287f">UFC Fight Night: Dolidze vs. Hernandez</option>
+  <option value="http://www.ufcstats.com/event-details/421ccfc6ddb17958">UFC 319: Du Plessis vs. Chimaev</option>
+  <option value="http://www.ufcstats.com/event-details/754968e325d6f60d">UFC Fight Night: Walker vs. Zhang</option>
+  <option value="http://www.ufcstats.com/event-details/6e380a4d73ab4f0e">UFC Fight Night: Imavov vs. Borralho</option>
+  <option value="http://www.ufcstats.com/event-details/5efaaf313b652dd7">UFC Fight Night: Lopes vs. Silva</option>
+</select>
 
     <!--Make call to app.py for scraping and event predictions-->
       <button onclick="getFighters()">Get Fighters</button>
@@ -37,34 +48,34 @@
         })
       .then(response => response.json())
       .then(data => {
-        document.getElementById('output').textContent = data.links;
+        if (!data.links || data.links.length == 0) {
+            document.getElementById('output').textContent = "No links.";
+        } else {
+            document.getElementById('output').textContent = data.links;
+        }
       })
       .catch(err => {
         console.error('Error:', err);
       });
-
-
     }
   </script>
-
     <!--Changing to another page-->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            const dropdown = document.querySelector('select.dropdown__select');
+            let header = document.getElementById("header");
+            header.textContent = 'Best Pix for ' + event + '!';
+            const dropdown = document.getElementById("ufcEventSelect");
             if (dropdown) {
-                let header = document.getElementById("header");
-                header.textContent = 'Best Pix for ' + event + '!';
-                dropdown.value = id;
                 dropdown.addEventListener("change", function () {
                     // Selecting the current option we are on in the dropdown
                     const selectedOption = dropdown.options[dropdown.selectedIndex];
                     // Getting the espn url for that option
-                    const eventURL = selectedOption.getAttribute("data-url");
-                    const eventValue = selectedOption.value;
-                    const eventName = selectedOption.text
+                    const eventURL = selectedOption.value;
+                    const eventName = selectedOption.text;
+                    
                     if (eventURL) {
                         // Redirect to the selected fight card's page
-                        window.location.href = `event.html?id=${eventValue}&url=${encodeURIComponent(eventURL)}&name=${encodeURIComponent(eventName)}`;
+                        window.location.href = `event.html?url=${encodeURIComponent(eventURL)}&name=${encodeURIComponent(eventName)}`;
                     }
                 });
             }
