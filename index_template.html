@@ -13,20 +13,17 @@
     <!--DropDown Insert-->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            const dropdown = document.querySelector("select.dropdown__select");
-            dropdown.value = "";
+            const dropdown = document.querySelector("#ufcEventSelect");
             if (dropdown) {
                 dropdown.addEventListener("change", function () {
                     // Selecting the current option we are on in the dropdown
                     const selectedOption = dropdown.options[dropdown.selectedIndex];
                     // Getting the espn url for that option
-                    const eventURL = selectedOption.getAttribute("data-url");
-                    const eventValue = selectedOption.value;
+                    const eventURL = selectedOption.value;
                     const eventName = selectedOption.text
-                    console.log("eventURL: " + eventURL + ", eventValue: " + eventValue);
                     if (eventURL) {
                         // Redirect to the selected fight card's page
-                        window.location.href = `event.html?id=${eventValue}&url=${encodeURIComponent(eventURL)}&name=${encodeURIComponent(eventName)}`;
+                        window.location.href = `event.html?url=${encodeURIComponent(eventURL)}&name=${encodeURIComponent(eventName)}`;
                     }
                 });
             }

@@ -9,10 +9,10 @@
 
     <script>
         const params = new URLSearchParams(window.location.search);
-        const id = params.get('id');
         const event = decodeURIComponent(params.get('name'));
         const fightCardURL = decodeURIComponent(params.get('url'));
         document.title = 'BixPix | ' + event;
+        console.log(fightCardURL)
     </script>
 
 </head>
@@ -37,34 +37,34 @@
         })
       .then(response => response.json())
       .then(data => {
-        document.getElementById('output').textContent = data.links;
+        if (!data.links || data.links.length == 0) {
+            document.getElementById('output').textContent = "No links.";
+        } else {
+            document.getElementById('output').textContent = data.links;
+        }
       })
       .catch(err => {
         console.error('Error:', err);
       });
-
-
     }
   </script>
-
     <!--Changing to another page-->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            const dropdown = document.querySelector('select.dropdown__select');
+            let header = document.getElementById("header");
+            header.textContent = 'Best Pix for ' + event + '!';
+            const dropdown = document.getElementById("ufcEventSelect");
             if (dropdown) {
-                let header = document.getElementById("header");
-                header.textContent = 'Best Pix for ' + event + '!';
-                dropdown.value = id;
                 dropdown.addEventListener("change", function () {
                     // Selecting the current option we are on in the dropdown
                     const selectedOption = dropdown.options[dropdown.selectedIndex];
                     // Getting the espn url for that option
-                    const eventURL = selectedOption.getAttribute("data-url");
-                    const eventValue = selectedOption.value;
-                    const eventName = selectedOption.text
+                    const eventURL = selectedOption.value;
+                    const eventName = selectedOption.text;
+                    
                     if (eventURL) {
                         // Redirect to the selected fight card's page
-                        window.location.href = `event.html?id=${eventValue}&url=${encodeURIComponent(eventURL)}&name=${encodeURIComponent(eventName)}`;
+                        window.location.href = `event.html?url=${encodeURIComponent(eventURL)}&name=${encodeURIComponent(eventName)}`;
                     }
                 });
             }
