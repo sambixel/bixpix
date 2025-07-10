@@ -37,11 +37,7 @@
         })
       .then(response => response.json())
       .then(data => {
-        if (!data.status || data.status != "True") {
-            document.getElementById('output').textContent = "Failed.";
-        } else {
-            document.getElementById('output').textContent = data.stats;
-        }
+        document.getElementById('output').textContent = data.status;
       })
       .catch(err => {
         console.error('Error:', err);

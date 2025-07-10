@@ -86,8 +86,9 @@ def get_fight_stats(fight_url):
         fighter1["3"] = fight_data[49].get_text(strip=True)
         fighter1["4"] = fight_data[51].get_text(strip=True)
         fighter1["5"] = fight_data[53].get_text(strip=True)
+        fighter1["retrieveFights"] = "Success"
     except:
-        fighter1["5fights"] = "Fail"
+        fighter1["retrieveFights"] = "Fail"
 
     try:
         fighter2["1"] = fight_data[46].get_text(strip=True)
@@ -95,8 +96,9 @@ def get_fight_stats(fight_url):
         fighter2["3"] = fight_data[50].get_text(strip=True)
         fighter2["4"] = fight_data[52].get_text(strip=True)
         fighter2["5"] = fight_data[54].get_text(strip=True)
+        fighter2["retrieveFights"] = "Success"
     except:
-        fighter2["5fights"] = "Fail"
+        fighter2["retrieveFights"] = "Fail"
     
     return fighter1, fighter2
 

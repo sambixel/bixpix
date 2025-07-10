@@ -19,13 +19,14 @@ def get_fighters():
     links = get_fight_links(url)
 
     all_fight_data = []
-    # for link in links:
-    #     fight_data = get_fight_stats(link)
-    #     if fight_data:
-    #         all_fight_data.append(fight_data)
-    # return jsonify({"status": "success", "received": links})
-    link = "http://www.ufcstats.com/fight-details/12cedec11b37ddc0"
-    return jsonify({"status": "True", "stats": get_fight_stats(link)})
+    for link in links:
+        fight_data = get_fight_stats(link)
+        if fight_data:
+            all_fight_data.append(fight_data)
+    return jsonify({"status": "success", "received": all_fight_data})
+
+    # link = "http://www.ufcstats.com/fight-details/74099d470e8d2765"
+    # return jsonify({"status": "True", "stats": get_fight_stats(link)})
 
 
 if __name__ == "__main__":
