@@ -6,7 +6,6 @@ from scraper import get_fight_links, get_fight_stats
 app = Flask(__name__)
 CORS(app)
 
-# ✅ Simple test route
 @app.route("/")
 def home():
     return "🏠 BixPix Flask API is running!"
