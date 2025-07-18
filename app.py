@@ -27,6 +27,5 @@ def get_fighters():
     # link = "http://www.ufcstats.com/fight-details/74099d470e8d2765"
     # return jsonify({"status": "True", "stats": get_fight_stats(link)})
 
-
 if __name__ == "__main__":
     app.run(debug=True)
