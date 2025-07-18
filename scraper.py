@@ -23,12 +23,6 @@ def get_fight_stats(fight_url):
     res = requests.get(fight_url, headers=headers)
     soup = BeautifulSoup(res.text, "html.parser")
 
-    dob_str = "Dec 04, 1991"
-    dob = datetime.strptime(dob_str, "%b %d, %Y")  # Parse the string
-
-    today = datetime.today()
-    age = (today - dob).days // 365
-
     fighter1 = {}
     fighter2 = {}
 
@@ -57,8 +51,14 @@ def get_fight_stats(fight_url):
 
     f1avgTime = fight_data[4].get_text(strip=True)
     f2avgTime = fight_data[5].get_text(strip=True)
-    fighter1["avgFightTime"] = float(f1avgTime.split(':')[0]) * 60 + float(f1avgTime.split(':')[1])
-    fighter2["avgFightTime"] = float(f2avgTime.split(':')[0]) * 60 + float(f2avgTime.split(':')[1])
+    if f1avgTime != '':
+        fighter1["avgFightTime"] = float(f1avgTime.split(':')[0]) * 60 + float(f1avgTime.split(':')[1])    
+    else:
+        fighter2["avgFightTime"] = 0
+    if f2avgTime != '':
+        fighter2["avgFightTime"] = float(f2avgTime.split(':')[0]) * 60 + float(f2avgTime.split(':')[1])
+    else:
+        fighter2["avgFightTime"] = 0
 
     f1height = fight_data[7].get_text(strip=True)
     f2height = fight_data[8].get_text(strip=True)
@@ -110,25 +110,17 @@ def get_fight_stats(fight_url):
 
     # 5 Most recent fight outcomes
 
-    try:
-        fighter1["1"] = fight_data[45].get_text(strip=True)
-        fighter1["2"] = fight_data[47].get_text(strip=True)
-        fighter1["3"] = fight_data[49].get_text(strip=True)
-        fighter1["4"] = fight_data[51].get_text(strip=True)
-        fighter1["5"] = fight_data[53].get_text(strip=True)
-        fighter1["retrieveFights"] = "Success"
-    except:
-        fighter1["retrieveFights"] = "Fail"
+    fighter1["1"] = fight_data[45].get_text(strip=True)
+    fighter1["2"] = fight_data[47].get_text(strip=True)
+    fighter1["3"] = fight_data[49].get_text(strip=True)
+    fighter1["4"] = fight_data[51].get_text(strip=True)
+    fighter1["5"] = fight_data[53].get_text(strip=True)
 
-    try:
-        fighter2["1"] = fight_data[46].get_text(strip=True)
-        fighter2["2"] = fight_data[48].get_text(strip=True)
-        fighter2["3"] = fight_data[50].get_text(strip=True)
-        fighter2["4"] = fight_data[52].get_text(strip=True)
-        fighter2["5"] = fight_data[54].get_text(strip=True)
-        fighter2["retrieveFights"] = "Success"
-    except:
-        fighter2["retrieveFights"] = "Fail"
+    fighter2["1"] = fight_data[46].get_text(strip=True)
+    fighter2["2"] = fight_data[48].get_text(strip=True)
+    fighter2["3"] = fight_data[50].get_text(strip=True)
+    fighter2["4"] = fight_data[52].get_text(strip=True)
+    fighter2["5"] = fight_data[54].get_text(strip=True)
     
     return fighter1, fighter2
 
