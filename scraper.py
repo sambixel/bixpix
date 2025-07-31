@@ -62,7 +62,7 @@ def get_fight_stats(fight_url):
 
     f1height = fight_data[7].get_text(strip=True)
     f2height = fight_data[8].get_text(strip=True)
-    fighter1["height"] = float(f1height[0]) * 12 + float(f1height[3:f2height.find('\"')])
+    fighter1["height"] = float(f1height[0]) * 12 + float(f1height[3:f1height.find('\"')])
     fighter2["height"] = float(f2height[0]) * 12 + float(f2height[3:f2height.find('\"')])
 
     fighter1["weight"] = int(fight_data[10].get_text(strip=True)[:3])
