@@ -8,13 +8,24 @@
     <link rel="icon" type="image/png" href="bixpixlogo.png">
 </head>
 <body>
-    <h1>Welcome to BixPix.</h1>
-    <p>Select a UFC Event:</p>
+    <h1>Welcome to BixPix</h1>
+    <p>AI-powered UFC fight predictions</p>
+    <label for="ufcEventSelect">Select a UFC Event: </label>
+
     <!--DropDown Insert-->
+
+    <div id="test"></div>
+
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const dropdown = document.querySelector("#ufcEventSelect");
             if (dropdown) {
+                const upcoming = dropdown.options[dropdown.selectedIndex];
+                upcomingURL = upcoming.value;
+                upcomingName = upcoming.text;
+                const test = document.getElementById("test");
+                test.textContent = upcomingURL + " ; " + upcomingName;
+
                 dropdown.addEventListener("change", function () {
                     // Selecting the current option we are on in the dropdown
                     const selectedOption = dropdown.options[dropdown.selectedIndex];
