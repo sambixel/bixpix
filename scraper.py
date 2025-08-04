@@ -62,14 +62,20 @@ def get_fight_stats(fight_url):
 
     f1height = fight_data[7].get_text(strip=True)
     f2height = fight_data[8].get_text(strip=True)
-    fighter1["height"] = float(f1height[0]) * 12 + float(f1height[3:f1height.find('\"')])
-    fighter2["height"] = float(f2height[0]) * 12 + float(f2height[3:f2height.find('\"')])
+    if '-' not in f1height:
+        fighter1["height"] = float(f1height[0]) * 12 + float(f1height[3:f1height.find('\"')])    
+    if '-' not in f2height:
+        fighter2["height"] = float(f2height[0]) * 12 + float(f2height[3:f2height.find('\"')])
 
-    fighter1["weight"] = int(fight_data[10].get_text(strip=True)[:3])
-    fighter2["weight"] = int(fight_data[11].get_text(strip=True)[:3])
+    if '--' not in fight_data[10]:
+        fighter1["weight"] = int(fight_data[10].get_text(strip=True)[:3])
+    if '--' not in fight_data[11]:
+        fighter2["weight"] = int(fight_data[11].get_text(strip=True)[:3])
 
-    fighter1["reach"] = float(fight_data[13].get_text(strip=True).replace('"', ''))
-    fighter1["reach"] = float(fight_data[14].get_text(strip=True).replace('"', ''))
+    if '--' not in fight_data[13]:
+        fighter1["reach"] = float(fight_data[13].get_text(strip=True).replace('"', ''))
+    if '--' not in fight_data[14]:
+        fighter2["reach"] = float(fight_data[14].get_text(strip=True).replace('"', ''))
 
     fighter1["stance"] = fight_data[16].get_text(strip=True)
     fighter2["stance"] = fight_data[17].get_text(strip=True)

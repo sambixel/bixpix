@@ -40,7 +40,7 @@ def parse_stats(soup, fight_year):
         except Exception as e:
             print(f"Skipping {label} due to parse error: {e}")
 
-    # Career statistics — still assuming they appear in a consistent order
+    # Career statistics
     text_items = soup.select("li.b-list__box-list-item")
     for item in text_items:
         text = item.text.strip()
@@ -67,7 +67,7 @@ def parse_stats(soup, fight_year):
     return stats
 
 
-# CSV setup (same as before)…
+# CSV setup
 fieldnames = [
     "fight_date",
     *(f"f1_{f}" for f in ["height","weight","reach","age","SLpM","Str_Acc","SApM","Str_Def","TD_Avg","TD_Acc","TD_Def","Sub_Avg"]),
@@ -83,21 +83,17 @@ with open("fight_data.csv","w",newline="") as csvfile:
     events_scraped = 0
     page = 1
 
-    # keep going until we hit max_events or no more pages
     while events_scraped < max_events:
         page_url = f"http://www.ufcstats.com/statistics/events/completed?page={page}"
         res = requests.get(page_url, headers=headers)
         soup = BeautifulSoup(res.text, "html.parser")
 
-        # get all event links on this page
         event_links = [a["href"] for a in soup.select("a.b-link.b-link_style_black")]
 
-        # if page is empty, break out
         if not event_links:
             break
 
         for ev in event_links:
-            # stop if we've collected enough
             if events_scraped >= max_events:
                 break
 
