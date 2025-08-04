@@ -28,8 +28,17 @@ for row in rows:
             'date': event_date
         })
 
+def next_card():
+    next_card = dropdown_options[0]
+    next_card_url = next_card["url"]
+    next_card_name = next_card["name"]
+    return {
+        "name": next_card_name,
+        "url": next_card_url
+    }
+
 html = '<select id="ufcEventSelect">\n'
-html += '<option disabled selected>Select an upcoming UFC event</option>\n'
+# html += '<option disabled selected>Select an upcoming UFC event</option>\n'
 
 for option in dropdown_options:
     html += f'  <option value="{option["url"]}">{option["name"]}</option>\n'

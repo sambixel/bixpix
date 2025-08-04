@@ -8,10 +8,11 @@
     <link rel="icon" type="image/png" href="bixpixlogo.png">
 </head>
 <body>
-    <h1>Welcome to BixPix.</h1>
-    <p>Select a UFC Event:</p>
+    <h1>Welcome to BixPix</h1>
+    <p>AI-powered UFC fight predictions</p>
+    <label for="ufcEventSelect">Select a UFC Event: </label>
+
     <select id="ufcEventSelect">
-<option disabled selected>Select an upcoming UFC event</option>
   <option value="http://www.ufcstats.com/event-details/6cd3dfc54f01287f">UFC Fight Night: Dolidze vs. Hernandez</option>
   <option value="http://www.ufcstats.com/event-details/421ccfc6ddb17958">UFC 319: Du Plessis vs. Chimaev</option>
   <option value="http://www.ufcstats.com/event-details/754968e325d6f60d">UFC Fight Night: Walker vs. Zhang</option>
@@ -22,10 +23,19 @@
   <option value="http://www.ufcstats.com/event-details/38e5d9dcb0fddc42">UFC Fight Night</option>
   <option value="http://www.ufcstats.com/event-details/7956f026e2672c47">UFC 321: Aspinall vs. Gane</option>
 </select>
+
+    <div id="test"></div>
+
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const dropdown = document.querySelector("#ufcEventSelect");
             if (dropdown) {
+                const upcoming = dropdown.options[dropdown.selectedIndex];
+                upcomingURL = upcoming.value;
+                upcomingName = upcoming.text;
+                const test = document.getElementById("test");
+                test.textContent = upcomingURL + " ; " + upcomingName;
+
                 dropdown.addEventListener("change", function () {
                     // Selecting the current option we are on in the dropdown
                     const selectedOption = dropdown.options[dropdown.selectedIndex];
