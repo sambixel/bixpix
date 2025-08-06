@@ -25,7 +25,6 @@
 </select>
 
     <div id="test"></div>
-
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const dropdown = document.querySelector("#ufcEventSelect");
@@ -33,8 +32,6 @@
                 const upcoming = dropdown.options[dropdown.selectedIndex];
                 upcomingURL = upcoming.value;
                 upcomingName = upcoming.text;
-                const test = document.getElementById("test");
-                test.textContent = upcomingURL + " ; " + upcomingName;
 
                 dropdown.addEventListener("change", function () {
                     // Selecting the current option we are on in the dropdown
@@ -48,6 +45,19 @@
                     }
                 });
             }
+            // Fetch Predictions for Upcoming card
+            fetch('http://127.0.0.1:5000/api/getNext', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }})
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('test').textContent = "Next: " + data.links
+            })
+            .catch(err => {
+                console.error('Error:', err);
+            });
         });
     </script>
 </body>

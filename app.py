@@ -25,6 +25,15 @@ def get_fighters():
             all_fight_data.append(fight_data)
     return jsonify({"status": "success", "received": all_fight_data})
 
+@app.route("/api/getNext", methods=["POST"])
+def get_next():
+    # links = get_fight_links(next_card)
+    nextCard = next_card()
+    nextCardURL = nextCard["url"]
+
+    fight_links = get_fight_links(nextCardURL)
+    
+    return fight_links
 
 if __name__ == "__main__":
     app.run(debug=True)

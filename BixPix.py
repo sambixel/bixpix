@@ -29,9 +29,9 @@ for row in rows:
         })
 
 def next_card():
-    next_card = dropdown_options[0]
-    next_card_url = next_card["url"]
-    next_card_name = next_card["name"]
+    next = dropdown_options[0]
+    next_card_url = next["url"]
+    next_card_name = next["name"]
     return {
         "name": next_card_name,
         "url": next_card_url
