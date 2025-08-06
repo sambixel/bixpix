@@ -1,4 +1,5 @@
 # scraper.py
+from flask import jsonify
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -17,7 +18,7 @@ def get_fight_links(event_url):
         link = row.get("data-link")
         if link:
             fight_links.append(link)
-    return fight_links
+    return jsonify({"links": fight_links})
 
 def get_fight_stats(fight_url):
     res = requests.get(fight_url, headers=headers)
