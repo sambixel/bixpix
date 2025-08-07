@@ -43,7 +43,7 @@
                 }})
             .then(response => response.json())
             .then(data => {
-                document.getElementById('test').textContent = "Next: " + data.links
+                document.getElementById('test').textContent = "predictions: " + data.predictions
             })
             .catch(err => {
                 console.error('Error:', err);

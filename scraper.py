@@ -3,11 +3,65 @@ from flask import jsonify
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
+import joblib
+import numpy as np
 
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
 }
+model = joblib.load("bixpix_xgb_model.pkl")
+
+BASE_FEATS = [
+    "height", "weight", "reach", "age",
+    "SLpM", "strikeAccuracy", "SApM", "defense",
+    "TDavg", "TDacc", "TDdef", "SubAvg"
+]
+
+def _build_feature_vector(f1: dict, f2: dict) -> list[float]:
+    """
+    Return the 12-dim vector (f1 – f2) in the exact order the model expects.
+    """
+    return [f1[feat] - f2[feat] for feat in BASE_FEATS]
+
+def get_predictions(event_url):
+    fight_links = get_fight_links(event_url)
+
+    fights = []
+    # Scrape every fight on the card
+    for link in fight_links:
+        try:
+            f1, f2 = get_fight_stats(link)
+            fights.append((f1, f2))
+        except Exception as e:
+            print(f"[get_predictions] skipped {link}: {e}")
+
+    # Build feature matrix & run model
+    X= np.array([_build_feature_vector(f1, f2) for f1, f2 in fights])
+    proba = model.predict_proba(X)[:, 1].tolist()  
+
+    # Assemble results
+    results = []
+    for (f1, f2), p in zip(fights, proba):
+        conf = round(p if p > 0.5 else 1 - p, 3)
+        results.append({
+            "fighter1":   f1["name"],
+            "fighter2":   f2["name"],
+            "prediction": f"{f1['name']} wins" if p > 0.5 else f"{f2['name']} wins",
+            "confidence": conf
+        })
+
+    # Sort by confidence descending
+    results.sort(key=lambda r: r["confidence"], reverse=True)
+
+    return {
+        "status":      "success",
+        "cardURL":     event_url,
+        "predictions": results
+    }
+
+
+
 
 def get_fight_links(event_url):
     res = requests.get(event_url, headers=headers)
@@ -18,7 +72,7 @@ def get_fight_links(event_url):
         link = row.get("data-link")
         if link:
             fight_links.append(link)
-    return jsonify({"links": fight_links})
+    return fight_links
 
 def get_fight_stats(fight_url):
     res = requests.get(fight_url, headers=headers)
@@ -114,20 +168,6 @@ def get_fight_stats(fight_url):
 
     fighter1["SubAvg"] = float(fight_data[43].get_text(strip=True))
     fighter2["SubAvg"] = float(fight_data[44].get_text(strip=True))
-
-    # 5 Most recent fight outcomes
-
-    fighter1["1"] = fight_data[45].get_text(strip=True)
-    fighter1["2"] = fight_data[47].get_text(strip=True)
-    fighter1["3"] = fight_data[49].get_text(strip=True)
-    fighter1["4"] = fight_data[51].get_text(strip=True)
-    fighter1["5"] = fight_data[53].get_text(strip=True)
-
-    fighter2["1"] = fight_data[46].get_text(strip=True)
-    fighter2["2"] = fight_data[48].get_text(strip=True)
-    fighter2["3"] = fight_data[50].get_text(strip=True)
-    fighter2["4"] = fight_data[52].get_text(strip=True)
-    fighter2["5"] = fight_data[54].get_text(strip=True)
     
     return fighter1, fighter2
 
