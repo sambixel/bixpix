@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from scraper import get_fight_links, get_fight_stats
+from scraper import get_predictions, get_fight_links, get_fight_stats
 from BixPix import next_card
 
 app = Flask(__name__)
@@ -31,9 +31,8 @@ def get_next():
     nextCard = next_card()
     nextCardURL = nextCard["url"]
 
-    fight_links = get_fight_links(nextCardURL)
-    
-    return fight_links
+    payload = get_predictions(nextCardURL)
+    return jsonify(payload)
 
 if __name__ == "__main__":
     app.run(debug=True)
