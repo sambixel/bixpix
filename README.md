@@ -2,7 +2,7 @@
 
 AI-powered UFC fight predictions with live sportsbook odds (DK/FD preferred, fallbacks included).
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=YOURUSER%2FYOURREPO&quickstart=1)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=sambixel%2Fbixpix&quickstart=1)
 
 ---
 
