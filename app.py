@@ -71,4 +71,6 @@ def api_predictions():
     return jsonify(payload)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    from dotenv import load_dotenv
+    load_dotenv() 
+    app.run(host="0.0.0.0", port=5000, debug=True)
