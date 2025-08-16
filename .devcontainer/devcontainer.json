@@ -1,0 +1,20 @@
+{
+  "name": "BixPix",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {}
+  },
+  "forwardPorts": [5000],
+  "portsAttributes": {
+    "5000": { "label": "BixPix", "onAutoForward": "openBrowser" }
+  },
+  "postCreateCommand": "pip install --upgrade pip setuptools wheel && pip install --prefer-binary -r requirements.txt",
+  "remoteEnv": { "FLASK_ENV": "development" },
+  "customizations": {
+    "codespaces": { "openFiles": ["README.md"] },
+    "vscode": {
+      "settings": { "python.defaultInterpreterPath": "/usr/local/bin/python" },
+      "extensions": ["ms-python.python", "ms-python.vscode-pylance"]
+    }
+  }
+}
