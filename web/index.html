@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" href="/favicon.ico">
+  <title>BixPix — UFC Picks</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    
+    :root{
+      --bg:#ffffff;
+      --text:#111827;          /* gray-900 */
+      --muted:#6b7280;         /* gray-500 */
+      --border:#e5e7eb;        /* gray-200 */
+      --chip:#f9fafb;          /* gray-50 */
+      --panel:#ffffff;         /* white */
+      --card:#ffffff;          /* white */
+      --shadow:0 8px 24px rgba(0,0,0,.06);
+      --red:#dc2626;           /* red-600 */
+      --red-soft:#fee2e2;      /* red-100 */
+      --red-border:#fecaca;    /* red-200 */
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    }
+    .wrap{
+      max-width:980px;
+      margin:32px auto;
+      padding:0 16px 48px;
+    }
+    /* Header */
+    .hero{
+      text-align:center;
+      margin:8px 0 18px;
+    }
+    .hero h1{
+      margin:0;
+      font-size:44px;
+      line-height:1.1;
+      font-weight:800;
+      letter-spacing:-0.02em;
+    }
+    .hero .sub{
+      margin-top:8px;
+      color:var(--muted);
+      font-size:16px;
+    }
+
+    /* Controls bar */
+    .bar{
+      display:flex;gap:12px;align-items:center;flex-wrap:wrap;
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px 14px;
+      box-shadow:var(--shadow);
+      margin-bottom:18px;
+    }
+    label{color:var(--muted);font-size:14px}
+    select{
+      appearance:none;outline:none;
+      background:var(--chip);color:var(--text);
+      border:1px solid var(--border);
+      padding:10px 12px;border-radius:10px;min-width:300px;
+      font-size:14px;
+    }
+    select:disabled{opacity:.6}
+
+    .chip{
+      background:var(--red-soft);
+      border:1px solid var(--red-border);
+      color:var(--red);
+      padding:6px 10px;border-radius:999px;font-size:12px;
+    }
+
+    /* Section header */
+    .headerRow{
+      display:flex;justify-content:space-between;align-items:center;
+      margin:10px 0;
+    }
+    .sectionTitle{font-weight:700;font-size:16px}
+    #cardTitle{color:var(--muted)}
+
+    /* Cards */
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:14px;padding:14px 16px;margin:10px 0;
+      box-shadow:var(--shadow);
+    }
+    .titleRow{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+    .match{font-size:16px;font-weight:700}
+    .chipRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .chip-neutral{
+      background:var(--chip);
+      border:1px solid var(--border);
+      color:var(--muted);
+      padding:6px 10px;border-radius:999px;font-size:12px;
+    }
+    .pick{color:var(--red);font-weight:800}
+    .empty{color:var(--muted);padding:16px 0}
+
+    /* Loading overlay */
+    #globalLoading{
+      position:fixed;inset:0;
+      background:rgba(255,255,255,.6);
+      backdrop-filter:saturate(1.2) blur(2px);
+      display:none;align-items:center;justify-content:center;
+      z-index:9999;
+    }
+    .spinner{
+      width:44px;height:44px;border-radius:50%;
+      border:4px solid #f3f4f6;         /* gray-100 track */
+      border-top-color:var(--red);       /* red accent */
+      animation:spin 0.8s linear infinite;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+  <!-- Loading overlay -->
+  <div id="globalLoading"><div class="spinner" aria-label="Loading"></div></div>
+
+  <div class="wrap">
+    <div class="hero">
+      <h1>Welcome to BixPix</h1>
+      <div class="sub">AI-powered UFC fight predictions</div>
+    </div>
+
+    <div class="bar">
+      <label for="eventSelect">Select a UFC Event:</label>
+      <select id="eventSelect" aria-label="Select UFC Event" disabled>
+        <option value="" selected>Loading events…</option>
+      </select>
+      <div id="eventMeta" class="chip" style="display:none;"></div>
+    </div>
+
+    <div class="headerRow">
+      <div class="sectionTitle">Top Picks</div>
+      <div id="cardTitle" class="sub"></div>
+    </div>
+
+    <div id="picks"></div>
+    <div id="empty" class="empty" style="display:none;">No fights found for this card.</div>
+  </div>
+
+  <script>
+    /* --------- Small helper to toggle loading overlay --------- */
+    let _loadingCount = 0;
+    function showLoading(on){
+      const el = document.getElementById('globalLoading');
+      _loadingCount += on ? 1 : -1;
+      if (_loadingCount < 0) _loadingCount = 0;
+      el.style.display = _loadingCount > 0 ? 'flex' : 'none';
+    }
+
+    /* --------- Formatters --------- */
+    const pct = x => (typeof x==='number' && isFinite(x)) ? (x*100).toFixed(1)+'%' : '—';
+    const fmtOdds = o => (o===undefined||o===null||Number.isNaN(Number(o))) ? '—' : (Number(o)>0?`+${Number(o)}`:`${Number(o)}`);
+
+    /* --------- Rendering --------- */
+    function renderPicks(rows){
+      const box = document.getElementById('picks');
+      const empty = document.getElementById('empty');
+      box.innerHTML = '';
+
+      if (!rows || rows.length===0){
+        empty.style.display = '';
+        return;
+      }
+      empty.style.display = 'none';
+
+      rows.forEach(r=>{
+        const match = `${r.fighter1} vs ${r.fighter2}`;
+        const pick  = r.pick || '—';
+        const conf  = pct(r.confidence);
+        const odds  = fmtOdds(r.odds);
+        const book  = r.book || '—';
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="titleRow">
+            <div class="match">${match}</div>
+          </div>
+          <div class="chipRow">
+            <div class="chip-neutral">Pick: <span class="pick">${pick}</span></div>
+            <div class="chip-neutral">Confidence: <strong>${conf}</strong></div>
+            <div class="chip-neutral">Odds: <strong>${odds}</strong> <span style="color:#6b7280;">(${book})</span></div>
+          </div>
+        `;
+        box.appendChild(card);
+      });
+    }
+
+    /* --------- Data loaders --------- */
+    async function loadEvents(){
+      showLoading(true);
+      try{
+        const res = await fetch('/api/events');
+        const data = await res.json();
+        const dd = document.getElementById('eventSelect');
+        dd.innerHTML = '';
+        const events = (data && data.events) ? data.events : [];
+
+        if (events.length === 0){
+          const opt = document.createElement('option');
+          opt.value = '';
+          opt.textContent = 'No upcoming events found';
+          dd.appendChild(opt);
+          dd.disabled = true;
+          return;
+        }
+
+        events.forEach((ev, idx)=>{
+          const opt = document.createElement('option');
+          opt.value = ev.cardURL;
+          opt.textContent = `${ev.cardName} — ${ev.date}`;
+          if (idx===0) opt.selected = true;
+          dd.appendChild(opt);
+        });
+        dd.disabled = false;
+
+        // Show date chip for first event
+        const meta = document.getElementById('eventMeta');
+        meta.textContent = events[0].date || '';
+        meta.style.display = events[0].date ? '' : 'none';
+
+        await loadCardByUrl(events[0].cardURL, events[0].cardName);
+      }catch(e){
+        console.error('loadEvents failed', e);
+      }finally{
+        showLoading(false);
+      }
+    }
+
+    async function loadCardByUrl(url, nameForHeader=''){
+      showLoading(true);
+      try{
+        const res = await fetch('/api/predictions', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ cardURL: url })
+        });
+        const data = await res.json();
+        document.getElementById('cardTitle').textContent = nameForHeader || (data.cardName || '');
+        renderPicks(data.predictions || []);
+      }catch(e){
+        console.error('loadCardByUrl failed', e);
+      }finally{
+        showLoading(false);
+      }
+    }
+
+    /* --------- Wiring --------- */
+    document.addEventListener('DOMContentLoaded', async ()=>{
+      await loadEvents();
+
+      const dd = document.getElementById('eventSelect');
+      dd.addEventListener('change', async (e)=>{
+        const url  = e.target.value;
+        const txt  = e.target.options[e.target.selectedIndex]?.text || '';
+        const [nm, dt] = txt.split(' — ');
+        const meta = document.getElementById('eventMeta');
+        meta.textContent = dt || '';
+        meta.style.display = dt ? '' : 'none';
+        if (url){ await loadCardByUrl(url, nm || ''); }
+      });
+    });
+  </script>
+</body>
+</html>
