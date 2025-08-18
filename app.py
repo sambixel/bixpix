@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from bixpix_core import get_events, next_card
 from scraper import get_fight_links, get_fight_stats, get_predictions as get_predictions_ev
+import os
 
 app = Flask(__name__, static_folder="web", static_url_path="")
 
@@ -70,7 +71,9 @@ def api_predictions():
     payload = get_predictions_ev(url)  
     return jsonify(payload)
 
+# if __name__ == "__main__":
+#     app.run()
+
 if __name__ == "__main__":
-    from dotenv import load_dotenv
-    load_dotenv() 
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
