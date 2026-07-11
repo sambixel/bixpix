@@ -105,6 +105,14 @@
     .pick{color:var(--red);font-weight:800}
     .empty{color:var(--muted);padding:16px 0}
 
+    /* Value emphasis */
+    .card-value{border-color:#bbf7d0;box-shadow:0 8px 24px rgba(22,163,74,.10)}
+    .chip-ev{
+      padding:6px 10px;border-radius:999px;font-size:12px;border:1px solid transparent;
+    }
+    .ev-pos{background:#dcfce7;border-color:#bbf7d0;color:#15803d}  /* green */
+    .ev-neg{background:var(--chip);border-color:var(--border);color:var(--muted)}
+
     /* Loading overlay */
     #globalLoading{
       position:fixed;inset:0;
@@ -141,7 +149,7 @@
     </div>
 
     <div class="headerRow">
-      <div class="sectionTitle">Top Picks</div>
+      <div class="sectionTitle">Top Value Picks</div>
       <div id="cardTitle" class="sub"></div>
     </div>
 
@@ -162,14 +170,20 @@
     /* --------- Formatters --------- */
     const pct = x => (typeof x==='number' && isFinite(x)) ? (x*100).toFixed(1)+'%' : '—';
     const fmtOdds = o => (o===undefined||o===null||Number.isNaN(Number(o))) ? '—' : (Number(o)>0?`+${Number(o)}`:`${Number(o)}`);
+    // EV is per $1 staked; show as a percent return with a sign.
+    const fmtEv = x => (typeof x==='number' && isFinite(x)) ? (x>=0?'+':'')+(x*100).toFixed(1)+'%' : '—';
+    const fmtEdge = x => (typeof x==='number' && isFinite(x)) ? (x>=0?'+':'')+(x*100).toFixed(1)+' pts' : '—';
 
     /* --------- Rendering --------- */
-    function renderPicks(rows){
+    function renderPicks(rows, skipped=0){
       const box = document.getElementById('picks');
       const empty = document.getElementById('empty');
       box.innerHTML = '';
 
       if (!rows || rows.length===0){
+        empty.textContent = skipped > 0
+          ? `No picks left on this card — all ${skipped} fights have already finished (or stats are unavailable).`
+          : 'No fights found for this card.';
         empty.style.display = '';
         return;
       }
@@ -181,21 +195,39 @@
         const conf  = pct(r.confidence);
         const odds  = fmtOdds(r.odds);
         const book  = r.book || '—';
+        const hasEv = typeof r.ev === 'number' && isFinite(r.ev);
+        const positive = hasEv && r.ev > 0;
 
         const card = document.createElement('div');
-        card.className = 'card';
+        card.className = 'card' + (positive ? ' card-value' : '');
+        const evChip = hasEv
+          ? `<div class="chip-ev ${positive?'ev-pos':'ev-neg'}">EV: <strong>${fmtEv(r.ev)}</strong></div>`
+          : '';
+        const edgeChip = (typeof r.edge === 'number' && isFinite(r.edge))
+          ? `<div class="chip-neutral">Edge: <strong>${fmtEdge(r.edge)}</strong></div>`
+          : '';
         card.innerHTML = `
           <div class="titleRow">
             <div class="match">${match}</div>
+            ${positive ? '<div class="chip">VALUE</div>' : ''}
           </div>
           <div class="chipRow">
+            ${evChip}
             <div class="chip-neutral">Pick: <span class="pick">${pick}</span></div>
-            <div class="chip-neutral">Confidence: <strong>${conf}</strong></div>
+            <div class="chip-neutral">Win prob: <strong>${conf}</strong></div>
             <div class="chip-neutral">Odds: <strong>${odds}</strong> <span style="color:#6b7280;">(${book})</span></div>
+            ${edgeChip}
           </div>
         `;
         box.appendChild(card);
       });
+
+      if (skipped > 0){
+        const note = document.createElement('div');
+        note.className = 'empty';
+        note.textContent = `${skipped} fight${skipped>1?'s':''} not shown — already finished or stats unavailable.`;
+        box.appendChild(note);
+      }
     }
 
     /* --------- Data loaders --------- */
@@ -248,8 +280,13 @@
           body: JSON.stringify({ cardURL: url })
         });
         const data = await res.json();
-        document.getElementById('cardTitle').textContent = nameForHeader || (data.cardName || '');
-        renderPicks(data.predictions || []);
+        let title = nameForHeader || (data.cardName || '');
+        if (typeof data.fetchedAt === 'number'){
+          const mins = Math.max(0, Math.round((Date.now()/1000 - data.fetchedAt) / 60));
+          title += ` · updated ${mins === 0 ? 'just now' : mins + ' min ago'}`;
+        }
+        document.getElementById('cardTitle').textContent = title;
+        renderPicks(data.predictions || [], data.skipped || 0);
       }catch(e){
         console.error('loadCardByUrl failed', e);
       }finally{

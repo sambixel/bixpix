@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 import joblib
 import numpy as np
+from bixpix_core import fetch
 
 # -----------------------
 # Config 
@@ -13,7 +14,6 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
 }
 
-THE_ODDS_API_KEY = os.getenv("THE_ODDS_API_KEY", "") 
 ODDS_API_BASE = "https://api.the-odds-api.com/v4"
 SPORT_KEY = "mma_mixed_martial_arts"                 
 BOOKS = ["draftkings", "fanduel", "betmgm"]
@@ -35,8 +35,10 @@ _name_cleaner = re.compile(r"[^a-z0-9 ]+")
 def normalize_name(name: str) -> str:
     s = unicodedata.normalize("NFKD", name).encode("ascii", "ignore").decode("ascii")
     s = s.lower().strip()
-    s = _name_cleaner.sub("", s) 
-    s = re.sub(r"\s+", " ", s)
+    s = _name_cleaner.sub("", s)
+    # Drop spaces entirely: books and UFCStats disagree on spacing
+    # (e.g. "Saint Denis" vs "Saintdenis"), which broke odds joins.
+    s = re.sub(r"\s+", "", s)
     return s
 
 def pair_key(n1: str, n2: str) -> tuple[str, str]:
@@ -55,6 +57,13 @@ def profit_per_dollar(odds: int | float | None) -> float | None:
     a = float(odds)
     return (a / 100.0) if a > 0 else (100.0 / (-a))
 
+def expected_value(prob: float, odds: int | float | None) -> float | None:
+    """EV per $1 staked: win prob * profit_per_dollar - lose prob. >0 means +EV."""
+    b = profit_per_dollar(odds)
+    if b is None:
+        return None
+    return prob * b - (1.0 - prob)
+
 def _build_feature_vector(f1: dict, f2: dict) -> list[float]:
     return [float(f1[feat]) - float(f2[feat]) for feat in BASE_FEATS]
 
@@ -62,7 +71,7 @@ def _build_feature_vector(f1: dict, f2: dict) -> list[float]:
 # Scraper
 # -----------------------
 def get_fight_links(event_url: str) -> list[str]:
-    res = requests.get(event_url, headers=HEADERS, timeout=30)
+    res = fetch(event_url)
     res.raise_for_status()
     soup = BeautifulSoup(res.text, "html.parser")
     fight_links = []
@@ -74,7 +83,7 @@ def get_fight_links(event_url: str) -> list[str]:
     return fight_links
 
 def get_fight_stats(fight_url: str):
-    res = requests.get(fight_url, headers=HEADERS, timeout=30)
+    res = fetch(fight_url)
     res.raise_for_status()
     soup = BeautifulSoup(res.text, "html.parser")
 
@@ -160,13 +169,16 @@ def fetch_odds_index() -> dict:
         ...
       }
     """
-    if not THE_ODDS_API_KEY:
+    # Read lazily so it works regardless of when load_dotenv() runs.
+    api_key = os.getenv("THE_ODDS_API_KEY", "")
+    if not api_key:
+        print("[odds] THE_ODDS_API_KEY not set — no odds/EV, picks fall back to confidence order")
         return {}
 
     try:
         url = f"{ODDS_API_BASE}/sports/{SPORT_KEY}/odds"
         params = {
-            "apiKey": THE_ODDS_API_KEY,
+            "apiKey": api_key,
             "regions": "us",
             "markets": "h2h",
             "oddsFormat": "american",
@@ -228,16 +240,24 @@ def fetch_odds_index() -> dict:
 def get_predictions(event_url: str):
     fight_links = get_fight_links(event_url)
     fights = []
+    # Fights we can't parse are counted, not dropped silently. On a live card
+    # this is the normal case: once a fight finishes, UFCStats swaps its
+    # matchup-preview page for a results page with a different layout.
+    skipped = 0
     for link in fight_links:
         try:
             f1, f2 = get_fight_stats(link)
             if all(k in f1 for k in BASE_FEATS) and all(k in f2 for k in BASE_FEATS):
                 fights.append((f1, f2))
+            else:
+                skipped += 1
         except Exception as e:
+            skipped += 1
             print(f"[get_predictions] skipped {link}: {e}")
 
     if not fights:
-        return {"status": "success", "cardURL": event_url, "predictions": []}
+        return {"status": "success", "cardURL": event_url,
+                "predictions": [], "skipped": skipped}
 
     X = np.array([_build_feature_vector(f1, f2) for f1, f2 in fights], dtype=float)
     proba = model.predict_proba(X)[:, 1].tolist()  
@@ -246,7 +266,8 @@ def get_predictions(event_url: str):
 
     results = []
     for (f1, f2), p in zip(fights, proba):
-        p = float(p)
+        p1 = float(p)            # model prob fighter1 wins
+        p2 = 1.0 - p1            # model prob fighter2 wins
         n1 = normalize_name(f1["name"])
         n2 = normalize_name(f2["name"])
         k = pair_key(n1, n2)
@@ -255,26 +276,45 @@ def get_predictions(event_url: str):
         o1 = line_info.get(n1) if line_info else None
         o2 = line_info.get(n2) if line_info else None
 
-        # confidence = max(p, 1-p)
-        confidence = round(max(p, 1.0 - p), 3)
-        pick_name = f1["name"] if p >= 0.5 else f2["name"]
+        # Build a candidate for each side that has a price, then take the
+        # side with the higher expected value as the "value pick". This can
+        # differ from the model's straight favorite (e.g. a +400 underdog the
+        # model gives a 50% shot is a better bet than a -300 favorite at 67%).
+        sides = []
+        for fighter, prob, odd in ((f1, p1, o1), (f2, p2, o2)):
+            if not odd:
+                continue
+            sides.append({
+                "name": fighter["name"],
+                "prob": prob,
+                "odds": int(odd["best_odds"]),
+                "book": str(odd["book"]),
+                "implied": float(odd["implied"]),
+                "ev": expected_value(prob, odd["best_odds"]),
+            })
 
-        chosen_odds = None
-        if p >= 0.5 and o1:
-            chosen_odds = o1
-        elif p < 0.5 and o2:
-            chosen_odds = o2
+        if sides:
+            best = max(sides, key=lambda s: s["ev"])
+        else:
+            # No odds available: fall back to the model's straight pick.
+            fav, prob = (f1, p1) if p1 >= 0.5 else (f2, p2)
+            best = {"name": fav["name"], "prob": prob, "odds": None,
+                    "book": None, "implied": None, "ev": None}
 
-        row = {
+        results.append({
             "fighter1": f1["name"],
             "fighter2": f2["name"],
-            "pick": pick_name,
-            "confidence": float(confidence),  
-            "odds": int(chosen_odds["best_odds"]) if chosen_odds else None,
-            "book": str(chosen_odds["book"]) if chosen_odds else None,
-        }
-        results.append(row)
+            "pick": best["name"],
+            "confidence": round(best["prob"], 3),   # model prob for the value side
+            "odds": best["odds"],
+            "book": best["book"],
+            "ev": round(best["ev"], 3) if best["ev"] is not None else None,
+            "edge": round(best["prob"] - best["implied"], 3) if best["implied"] is not None else None,
+        })
 
-    results.sort(key=lambda r: -r["confidence"])
+    # Best value first: rows with EV ranked by EV desc, rows without odds last.
+    results.sort(key=lambda r: (r["ev"] is not None, r["ev"] if r["ev"] is not None else 0.0,
+                                r["confidence"]), reverse=True)
 
-    return {"status": "success", "cardURL": event_url, "predictions": results}
+    return {"status": "success", "cardURL": event_url,
+            "predictions": results, "skipped": skipped}
