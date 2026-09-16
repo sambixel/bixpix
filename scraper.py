@@ -276,45 +276,37 @@ def get_predictions(event_url: str):
         o1 = line_info.get(n1) if line_info else None
         o2 = line_info.get(n2) if line_info else None
 
-        # Build a candidate for each side that has a price, then take the
-        # side with the higher expected value as the "value pick". This can
-        # differ from the model's straight favorite (e.g. a +400 underdog the
-        # model gives a 50% shot is a better bet than a -300 favorite at 67%).
-        sides = []
-        for fighter, prob, odd in ((f1, p1, o1), (f2, p2, o2)):
-            if not odd:
-                continue
-            sides.append({
-                "name": fighter["name"],
-                "prob": prob,
-                "odds": int(odd["best_odds"]),
-                "book": str(odd["book"]),
-                "implied": float(odd["implied"]),
-                "ev": expected_value(prob, odd["best_odds"]),
-            })
-
-        if sides:
-            best = max(sides, key=lambda s: s["ev"])
-        else:
-            # No odds available: fall back to the model's straight pick.
-            fav, prob = (f1, p1) if p1 >= 0.5 else (f2, p2)
-            best = {"name": fav["name"], "prob": prob, "odds": None,
-                    "book": None, "implied": None, "ev": None}
+        # Predict the winner from the model alone. Odds only evaluate the
+        # price of that pick; they must never switch it to the other fighter.
+        fighter, prob, odd = (f1, p1, o1) if p1 >= 0.5 else (f2, p2, o2)
+        odds = int(odd["best_odds"]) if odd else None
+        implied = american_to_implied(odds)
+        ev = expected_value(prob, odds)
+        edge = prob - implied if implied is not None else None
+        # Use full precision for classification, rather than the rounded EV
+        # sent to the UI. An exact model tie is not a winner/value pick.
+        is_value = prob > 0.5 and ev is not None and ev > 0.0
+        value_status = (
+            "no_pick" if prob == 0.5 else
+            "unavailable" if ev is None else
+            "value" if is_value else "no_value"
+        )
 
         results.append({
             "fighter1": f1["name"],
             "fighter2": f2["name"],
-            "pick": best["name"],
-            "confidence": round(best["prob"], 3),   # model prob for the value side
-            "odds": best["odds"],
-            "book": best["book"],
-            "ev": round(best["ev"], 3) if best["ev"] is not None else None,
-            "edge": round(best["prob"] - best["implied"], 3) if best["implied"] is not None else None,
+            "pick": fighter["name"] if prob > 0.5 else None,
+            "confidence": round(prob, 3),
+            "odds": odds if prob > 0.5 else None,
+            "book": str(odd["book"]) if odd and prob > 0.5 else None,
+            "ev": round(ev, 3) if ev is not None and prob > 0.5 else None,
+            "edge": round(edge, 3) if edge is not None and prob > 0.5 else None,
+            "isValue": is_value,
+            "valueStatus": value_status,
         })
 
-    # Best value first: rows with EV ranked by EV desc, rows without odds last.
-    results.sort(key=lambda r: (r["ev"] is not None, r["ev"] if r["ev"] is not None else 0.0,
-                                r["confidence"]), reverse=True)
+    # Show the strongest winner predictions first, independent of prices.
+    results.sort(key=lambda r: r["confidence"], reverse=True)
 
     return {"status": "success", "cardURL": event_url,
             "predictions": results, "skipped": skipped}

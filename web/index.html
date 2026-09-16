@@ -149,10 +149,11 @@
     </div>
 
     <div class="headerRow">
-      <div class="sectionTitle">Top Value Picks</div>
+      <div class="sectionTitle">Fight Predictions</div>
       <div id="cardTitle" class="sub"></div>
     </div>
 
+    <p class="sub" style="color:var(--muted);font-size:14px;">Picks follow the model’s predicted winner. Value means that pick has positive estimated return at the listed odds, based on the model’s win probability.</p>
     <div id="picks"></div>
     <div id="empty" class="empty" style="display:none;">No fights found for this card.</div>
   </div>
@@ -191,12 +192,15 @@
 
       rows.forEach(r=>{
         const match = `${r.fighter1} vs ${r.fighter2}`;
-        const pick  = r.pick || '—';
+        const pick  = r.pick || 'No clear pick';
         const conf  = pct(r.confidence);
         const odds  = fmtOdds(r.odds);
         const book  = r.book || '—';
         const hasEv = typeof r.ev === 'number' && isFinite(r.ev);
-        const positive = hasEv && r.ev > 0;
+        const positive = r.isValue === true;
+        const valueLabel = positive ? 'VALUE'
+          : r.valueStatus === 'no_pick' ? 'TOO CLOSE TO CALL'
+          : r.valueStatus === 'unavailable' ? 'VALUE UNKNOWN — NO ODDS' : 'NO VALUE';
 
         const card = document.createElement('div');
         card.className = 'card' + (positive ? ' card-value' : '');
@@ -209,7 +213,7 @@
         card.innerHTML = `
           <div class="titleRow">
             <div class="match">${match}</div>
-            ${positive ? '<div class="chip">VALUE</div>' : ''}
+            <div class="${positive ? 'chip-ev ev-pos' : 'chip-neutral'}">${valueLabel}</div>
           </div>
           <div class="chipRow">
             ${evChip}

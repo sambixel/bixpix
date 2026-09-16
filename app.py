@@ -30,7 +30,7 @@ def _events_cached(force: bool = False) -> list[dict]:
 
 
 def _predictions_cached(card_url: str, force: bool = False) -> dict:
-    key = f"predictions:{card_url}"
+    key = f"predictions:winner-first-v1:{card_url}"
     payload = None if force else db.get(key, PREDICTIONS_TTL)
     if payload is None:
         payload = get_predictions_ev(card_url)
